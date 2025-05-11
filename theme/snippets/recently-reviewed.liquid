@@ -1,0 +1,225 @@
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+
+<style>
+  .recently-viewed-title {
+    font-size: 24px;
+    border-top: 1px solid #d2d2d2;
+    padding-top: 50px;
+  }
+
+  .recently-viewed-section {
+    position: relative;
+  }
+
+  .recently-viewed-slide {
+    width: auto;
+  }
+
+  .recently-viewed-product {
+    cursor: pointer;
+  }
+
+  .recently-viewed-img-wrapper {
+    overflow: hidden;
+    position: relative;
+    height: 180px;
+  }
+
+  .recently-viewed-img-wrapper img {
+    width: unset !important;
+    height: unset !important;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+
+  .media.media--hover-effect {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+  }
+  /* Animation */
+  .recently-viewed-product:hover .media--hover-effect img {
+    transform: scale(1.05) translateY(-5px);
+  }
+
+  .recently-viewed-product-title {
+    font-size: 1.3rem;
+    line-height: calc(1 + 0.5 / var(--font-body-scale));
+    letter-spacing: 0.04rem;
+    padding-bottom: 10px;
+  }
+
+  .recently-viewed-product-title a {
+    color: black;
+    text-decoration: none;
+  }
+
+  .recently-viewed-product-title a:hover {
+    border-bottom: 1px solid black;
+  }
+
+  .recently-viewed-price {
+    color: #000;
+    margin-top: 0.5rem;
+  }
+
+  .swiper.recent-swiper {
+    height: auto;
+    padding-bottom: 70px;
+  }
+
+  .swiper-button-next,
+  .swiper-button-prev {
+    position: absolute;
+    bottom: 0;
+    top: auto;
+    display: block !important;
+    color: black;
+    opacity: 1;
+    z-index: 10;
+  }
+
+  .swiper-button-prev {
+    left: 50%;
+    transform: translateX(-120%);
+  }
+
+  .swiper-button-next {
+    left: 50%;
+    transform: translateX(20%);
+  }
+
+  .swiper-button-next:after,
+  .swiper-button-prev:after {
+    font-size: 30px !important;
+  }
+  /*mobile responsive  */
+  @media only screen and (max-width: 749px) {
+    .recently-viewed-img-wrapper {
+      height: 90px;
+    }
+    .swiper-button-next:after,
+    .swiper-button-prev:after {
+      font-size: 15px !important;
+    }
+
+    .swiper.recent-swiper {
+      height: auto;
+    }
+
+    .recently-viewed-title {
+      padding-top: 25px;
+    }
+  }
+</style>
+
+<!-- HTML Structure -->
+<div class="recently-viewed-section">
+  <h2 class="recently-viewed-title">{{ title | default: 'Recently Viewed' }}</h2>
+  <p class="recently-viewed-sub-title">{{ subtitle | default: 'Based on your browsing history' }}</p>
+
+  <div class="swiper recent-swiper">
+    <div class="swiper-wrapper js-recentPdpBlock">
+      <div class="loading-msg" style="font-style: italic;">No recently viewed products yet. Start browsing!</div>
+    </div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+  </div>
+</div>
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
+<script>
+  // Initialize Swiper slider.
+  function initSwiper() {
+    document.querySelectorAll('.recent-swiper').forEach(swiperEl => {
+      new Swiper(swiperEl, {
+        slidesPerView: 2,
+        spaceBetween: 15,
+        navigation: {
+          nextEl: swiperEl.querySelector('.swiper-button-next'),
+          prevEl: swiperEl.querySelector('.swiper-button-prev')
+        },
+        breakpoints: {
+          576: { slidesPerView: 2 },
+          750: { slidesPerView: 3 },
+          990: { slidesPerView: 3 }
+        }
+      });
+    });
+  }
+/**
+ * Save the currently viewed product to localStorage.
+ */
+  function setRecentlyViewedPdp() {
+    const pdpData = {
+      productTitle: "{{ product.title }}",
+      productImg: "{{ product.featured_image | img_url: '500x' }}",
+      productPrice: "{{ product.price | money | remove_first: '' }}",
+      productUrl: "{{ product.url }}"
+    };
+//* Limits total stored products to numberOfProduct.
+    const numberOfProduct = {{ max_products | default: 4 }};
+    let recent = JSON.parse(localStorage.getItem('recently_viewed') || '[]');
+  // Remove duplicates and ensure valid entry
+    recent = recent.filter(item => item && typeof item === 'object' && item.productTitle && item.productUrl);
+     // Remove current product if already exists, then add it at front
+    recent = recent.filter(item => item.productTitle !== pdpData.productTitle);
+    recent.unshift(pdpData);
+     // Save updated list, limited to numberOfProduct
+    localStorage.setItem('recently_viewed', JSON.stringify(recent.slice(0, numberOfProduct)));
+    // Render updated list
+    getRecentPdp();
+  }
+
+  function getRecentPdp() {
+    /**
+ * Render the recently viewed products from localStorage into the DOM.
+ * Also initializes Swiper after rendering.
+ */
+    let pdpDataArray = JSON.parse(localStorage.getItem('recently_viewed')) || [];
+      // Ensure items are valid and contain required properties
+    pdpDataArray = pdpDataArray.filter(item => item && item.productTitle && item.productUrl);
+  // Generate HTML for each product
+    const recentViewHtml = pdpDataArray.map(item => `
+      <div class="swiper-slide recently-viewed-slide">
+        <div class="recently-viewed-product">
+          <div class="recently-viewed-img-wrapper">
+            <a href="${item.productUrl}">
+              <div class="media media--hover-effect">
+                <img src="${item.productImg}" alt="${item.productTitle}" loading="lazy"/>
+              </div>
+            </a>
+          </div>
+          <h3 class="recently-viewed-product-title">
+            <a class="c-product__url" href="${item.productUrl}">
+
+              ${item.productTitle}
+            </a>
+          </h3>
+          <p class="recently-viewed-price">${item.productPrice || ''}</p>
+        </div>
+      </div>
+    `).join('');
+  // Inject into all matching containers
+    document.querySelectorAll('.js-recentPdpBlock').forEach(el => {
+      el.innerHTML = recentViewHtml;
+    });
+  // Re-initialize swiper
+    initSwiper();
+  }
+/**
+ * DOM ready logic to trigger product tracking and rendering.
+ * Also listens for section reloads in Shopify Theme Editor.
+ */
+  document.addEventListener('DOMContentLoaded', function () {
+    setRecentlyViewedPdp();
+  // Re-render on Shopify editor changes
+    if (Shopify.designMode) {
+      document.addEventListener('shopify:section:load', function () {
+        getRecentPdp();
+      });
+    }
+  });
+</script>
