@@ -1,0 +1,51 @@
+{% comment %} /**
+ * Renders the 'recently-reviewed' snippet.
+ * title - The title.
+ *  subtitle - The subtitle text.
+ *  max_products - The number of recently viewed products to display.
+ */ {% endcomment %}
+<div class="page-width">
+  {% render 'recently-reviewed',
+    title: section.settings.title ,  
+    subtitle: section.settings.subtitle ,
+    max_products: section.settings.max_products
+  %}
+</div>
+<!-- /**
+ * Section Schema Definition
+ * Title: Recently Viewed Block
+ * Tag: section - Shopify section element
+ * preset Defines the default settings for when the section is added in Theme Editor
+ */ -->
+{% schema %}
+{
+  "name": "Recently Viewed Block",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Recently Viewed"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "Based on your browsing history"
+    },
+    {
+      "type": "number",
+      "id": "max_products",
+      "label": "Max products",
+      "default": 4
+    }
+  ],
+  "presets": [
+    {
+      "name": "Recently Viewed"
+    }
+  ]
+}
+{% endschema %}
